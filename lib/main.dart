@@ -114,13 +114,12 @@ class MyHomePageState extends State<MyHomePage> {
         var def_value = (groups.length > 0) ? groups[0]['name'] : null;
         var group_selector = DropdownButton(
             value: def_value,
-            items: groups.map((group) {
-                print('item $group');
-                return DropdownMenuItem(child: Text(group['name']), value: group['name']);
-            }).toList(),
-            onChanged: (newValue) {
+            items: groups.map((group) =>
+                DropdownMenuItem(child: Text(group['name']),
+                                 value: group['name'])).toList(),
+            onChanged: (new_value) {
               setState(() {
-                selected_group = newValue;
+                selected_group = new_value;
                 print('Group $selected_group has been selected');
               });
         });
@@ -173,8 +172,8 @@ class MyHomePageState extends State<MyHomePage> {
             ),
             TextButton(
               onPressed: () {
-                if (groups.length > 0) {
-                  add_entity(groups[0]['id'], nameField, valueField);
+                if (selected_group != null) {
+                  add_entity(selected_group['id'], nameField, valueField);
                 }
                 Navigator.pop(context);
               },
@@ -196,7 +195,6 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     var body = DadList();
-
     var fab2 = Stack(
       children: <Widget>[
         Padding(padding: EdgeInsets.only(left:31),
