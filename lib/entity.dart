@@ -1,8 +1,10 @@
 class Entity {
   String name = "";
-  double weight = 0.0;
-  Entity(String name, double weight) {
+  double value = 0.0;
+  bool active = false;
+  Entity(String name, double value, bool active) {
     this.name = name;
-    this.weight = weight;
+    this.value = value;
+    this.active = active;
   }
 }
