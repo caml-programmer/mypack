@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mypack/entity.dart';
-//import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:drag_and_drop_lists/drag_and_drop_lists.dart';
+import 'package:mypack/db.dart';
+import 'package:sqflite/sqflite.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,6 +30,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  Storage storage = Storage();
+
   List<Entity> entities = [
     Entity('A', 1.3),
     Entity('B', 2.8),
