@@ -3,18 +3,27 @@ import 'package:sqflite/sqflite.dart';
 class Storage {
   Database? db;
 
+  connect(void call()) {
+    create().then((_) {
+      print('Call after connect');
+      call();
+    });
+  }
+
   Future create() async {
-    Database database = await openDatabase(
-      "mypack.db",
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute(
-            'CREATE TABLE groups(id INTEGER PRIMARY KEY, name TEXT, position INTEGER)');
-        await db.execute(
-            'CREATE TABLE pack(id INTEGER PRIMARY KEY, group_id INTEGER REFERENCES groups(id), name TEXT, value REAL, position INTEGER, active INTEGER)');
-      },
-    );
-    this.db = database;
+    if (db == null) {
+      Database database = await openDatabase(
+        "mypack.db",
+        version: 1,
+        onCreate: (db, version) async {
+          await db.execute(
+              'CREATE TABLE groups(id INTEGER PRIMARY KEY, name TEXT, position INTEGER)');
+          await db.execute(
+              'CREATE TABLE pack(id INTEGER PRIMARY KEY, group_id INTEGER REFERENCES groups(id), name TEXT, value REAL, position INTEGER, active INTEGER)');
+        },
+      );
+      this.db = database;
+    }
   }
 
   Future<List<Map>> groups() async {

@@ -1,24 +1,95 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:drag_and_drop_lists/drag_and_drop_item.dart';
 import 'package:drag_and_drop_lists/drag_and_drop_lists.dart';
+import 'package:mypack/db.dart';
 
 class DadList extends StatefulWidget {
   DadList({Key? key}) : super(key: key);
+
+  var storage;
+
+  void setStorage(Storage s) {
+    storage = s;
+    s.create().then((_) {});
+  }
+
+  Storage getStorage() {
+    return storage;
+  }
+
   @override
-  DadListState createState() => DadListState();
+  DadListState createState() => DadListState(storage);
 }
 
 class DadListState extends State<DadList> {
-  late List<DragAndDropList> _contents;
+  var storage;
+  var _contents = <DragAndDropList>[];
+
+  DadListState(this.storage) {
+    setContents();
+  }
+
+  void setContents() {
+        print('SetContents');
+        storage.connect(() {
+          storage.groups().then((groups) {
+            _contents.clear();
+            groups.forEach((g) {
+              var group_id = g['id'];
+              var group_name = g['name'];
+              var children = <DragAndDropItem>[];
+              storage.items(group_id).then((items) {
+                  items.forEach((e) {
+                  var item_name = e['name'];
+                  var item_active = e['active'];
+                  children.add(DragAndDropItem(child: Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 12),
+                          child: Text('${item_name}'),
+                        ),
+                        Checkbox(
+                          value: item_active,
+                          onChanged: ((_) {}),)
+                      ])));
+                });
+              });
+
+              _contents.add(DragAndDropList(
+                  header: Column(children: <Widget>[
+                    Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 8, bottom: 4),
+                          child: Text('${group_name}',
+                            style: TextStyle(fontWeight: FontWeight.bold,
+                                fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
+                  children: children
+              ));
+            });
+          });
+
+        });
+  }
 
   @override
   void initState() {
+    print('initState');
     super.initState();
-
-    _contents = List.generate(4, (index) {
-      return DragAndDropList(
+    this.setContents();
+/*
+    int index = 0;
+    _contents = [DragAndDropList(
         header: Column(
           children: <Widget>[
             Row(
@@ -59,21 +130,9 @@ class DadListState extends State<DadList> {
               ],
             ),
           ),
-          DragAndDropItem(
-            child: Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  child: Text(
-                    'Sub $index.3',
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
-      );
-    });
+      )];
+*/
   }
 
   @override

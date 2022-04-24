@@ -194,7 +194,8 @@ class MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var body = DadList();
+    var dad = DadList();
+    dad.setStorage(storage);
     var fab2 = Stack(
       children: <Widget>[
         Padding(padding: EdgeInsets.only(left:31),
@@ -220,7 +221,7 @@ class MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: body,
+      body: dad,
       floatingActionButton: fab2
     );
   }
