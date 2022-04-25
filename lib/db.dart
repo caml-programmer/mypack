@@ -109,6 +109,25 @@ class Storage {
     await db!.rawQuery('DELETE FROM pack where id = ?', [item_id]);
   }
 
-  // TODO: Drag And Drop positions.
+  Future onItemReorder(int oldItemIndex, int oldListIndex, int newItemIndex, int newListIndex) async {
+    int old_group_id = Sqflite.firstIntValue(await db!.rawQuery('select id from groups where position = ?', [oldListIndex]))!;
+    int new_group_id = Sqflite.firstIntValue(await db!.rawQuery('select id from groups where position = ?', [newListIndex]))!;
+    int old_item_id  = Sqflite.firstIntValue(await db!.rawQuery('select id from pack where position = ? and group_id = ?', [oldItemIndex, old_group_id]))!;
+    int new_item_id  = Sqflite.firstIntValue(await db!.rawQuery('select id from pack where position = ? and group_id = ?', [newItemIndex, new_group_id]))!;
+    await db!.transaction((txn) async {
+      await txn.rawQuery('UPDATE pack SET group_id=?, position=? where id=?', [new_group_id, newItemIndex, old_item_id]);
+      await txn.rawQuery('UPDATE pack SET group_id=?, position=? where id=?', [old_group_id, oldItemIndex, new_item_id]);
+    });
+  }
+
+  Future onListReorder(int oldListIndex, int newListIndex) async {
+    int old_group_id = Sqflite.firstIntValue(await db!.rawQuery('select id from groups where position = ?', [oldListIndex]))!;
+    int new_group_id = Sqflite.firstIntValue(await db!.rawQuery('select id from groups where position = ?', [newListIndex]))!;
+    await db!.transaction((txn) async {
+      await txn.rawQuery('UPDATE groups SET position = ? where id = ?', [oldListIndex, new_group_id]);
+      await txn.rawQuery('UPDATE groups SET position = ? where id = ?', [newListIndex, old_group_id]);
+    });
+  }
+
   // TODO: Active flag handling
 }

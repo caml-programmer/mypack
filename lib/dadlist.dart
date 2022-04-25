@@ -189,6 +189,7 @@ class DadListState extends State<DadList> {
     setState(() {
       var movedItem = _contents[oldListIndex].children.removeAt(oldItemIndex);
       _contents[newListIndex].children.insert(newItemIndex, movedItem);
+      storage.onItemReorder(oldItemIndex, oldListIndex, newItemIndex, newListIndex);
     });
   }
 
@@ -196,6 +197,8 @@ class DadListState extends State<DadList> {
     setState(() {
       var movedList = _contents.removeAt(oldListIndex);
       _contents.insert(newListIndex, movedList);
+      storage.onListReorder(oldListIndex, newListIndex);
     });
+
   }
 }
