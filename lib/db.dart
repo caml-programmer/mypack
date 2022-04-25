@@ -52,22 +52,30 @@ class Storage {
   }
 
   Future max_group_position(int group_id) async {
-    return Sqflite.firstIntValue(await db!.rawQuery('select max(position) from pack where group_id = ?', [group_id]))!;
+    int? pos = Sqflite.firstIntValue(await db!.rawQuery('select max(position) from pack where group_id = ?', [group_id]));
+    if (pos == null) {
+      return -1;
+    }
+    else {
+      return pos;
+    }
   }
 
-  Future add_item(int group_id, String item, double value) async {
+  Future<int> add_item(int group_id, String item, double value) async {
+    print("try to add item: $group_id $item $value");
     int position = await max_group_position(group_id);
     position++;
-    await db!.transaction((txn) async {
+    return await db!.transaction((txn) async {
       int id = await txn.rawInsert(
-          'INSERT INTO pack(group_id, name, value, position) VALUES(?,?,?,?)',
-          [group_id, item, value, position]);
+          'INSERT INTO pack(group_id, name, value, position, active) VALUES(?,?,?,?,?)',
+          [group_id, item, value, position, 0]);
       print('inserted: $id');
+      return id;
     });
   }
 
   Future<List<Map>> items(int group_id) async {
-    return await db!.rawQuery('select id,name,value from pack where group_id = ? order by position asc', [group_id]);
+    return await db!.rawQuery('select id,name,value,active from pack where group_id = ? order by position asc', [group_id]);
   }
 
   Future remove_item(int item_id) async {

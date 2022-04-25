@@ -11,6 +11,7 @@ class DadList extends StatefulWidget {
   DadList({Key? key}) : super(key: key);
 
   var storage;
+  var state_refresh = (() {});
 
   void setStorage(Storage s) {
     storage = s;
@@ -21,8 +22,16 @@ class DadList extends StatefulWidget {
     return storage;
   }
 
+  void refresh() {
+    state_refresh();
+  }
+
   @override
-  DadListState createState() => DadListState(storage);
+  DadListState createState() {
+    var state = DadListState(storage);
+    state_refresh = (() { state.refresh(); });
+    return state;
+  }
 }
 
 class DadListState extends State<DadList> {
@@ -30,7 +39,7 @@ class DadListState extends State<DadList> {
   var _contents = <DragAndDropList>[];
 
   DadListState(this.storage) {
-    setContents();
+      setContents();
   }
 
   void setContents() {
@@ -45,17 +54,17 @@ class DadListState extends State<DadList> {
               storage.items(group_id).then((items) {
                   items.forEach((e) {
                   var item_name = e['name'];
+                  var item_value = e['value'];
                   var item_active = e['active'];
+                  bool active = (item_active == 1);
                   children.add(DragAndDropItem(child: Row(
                       children: [
+                        Checkbox(value: active, onChanged: ((_) {}),),
                         Padding(
                           padding: EdgeInsets.symmetric(
                               vertical: 8, horizontal: 12),
-                          child: Text('${item_name}'),
+                          child: Text('${item_name} ${item_value}'),
                         ),
-                        Checkbox(
-                          value: item_active,
-                          onChanged: ((_) {}),)
                       ])));
                 });
               });
@@ -82,63 +91,22 @@ class DadListState extends State<DadList> {
         });
   }
 
+  void refresh() {
+    setState(() {
+      this.setContents();
+    });
+  }
+
   @override
   void initState() {
     print('initState');
     super.initState();
     this.setContents();
-/*
-    int index = 0;
-    _contents = [DragAndDropList(
-        header: Column(
-          children: <Widget>[
-            Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 8, bottom: 4),
-                  child: Text(
-                    'Header $index',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        children: <DragAndDropItem>[
-          DragAndDropItem(
-            child: Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  child: Text(
-                    'Sub $index.1',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          DragAndDropItem(
-            child: Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  child: Text(
-                    'Sub $index.2',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      )];
-*/
   }
 
   @override
   Widget build(BuildContext context) {
     var backgroundColor = Color.fromARGB(255, 243, 242, 248);
-
     return DragAndDropLists(
         children: _contents,
         onItemReorder: _onItemReorder,

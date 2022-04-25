@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:mypack/entity.dart';
 import 'package:mypack/db.dart';
 import 'package:mypack/dadlist.dart';
 
@@ -37,7 +36,9 @@ class MyHomePageState extends State<MyHomePage> {
 
   late int group_count;
   late List<Map> groups;
-  var selected_group = null;
+  var selected_group_id = null;
+
+  var dad = DadList();
 
   MyHomePageState() {
     storage.create().then((_) {
@@ -99,7 +100,10 @@ class MyHomePageState extends State<MyHomePage> {
         ),
         TextButton(
           onPressed: () {
-            storage.add_group(groupField.controller!.text.toString());
+            setState(() {
+              storage.add_group(groupField.controller!.text.toString());
+            });
+            groupField.controller!.clear();
             Navigator.pop(context);
           },
           child: Text('ADD'),
@@ -110,92 +114,102 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   void showAddEntityDialog(BuildContext context) {
-        var groups = getGroups();
-        var def_value = (groups.length > 0) ? groups[0]['name'] : null;
-        var group_selector = DropdownButton(
-            value: def_value,
-            items: groups.map((group) =>
-                DropdownMenuItem(child: Text(group['name']),
-                                 value: group['name'])).toList(),
-            onChanged: (new_value) {
-              setState(() {
-                selected_group = new_value;
-                print('Group $selected_group has been selected');
-              });
-        });
+    var groups = getGroups();
+    selected_group_id = (groups.length > 0) ? groups[0]['id'] : null;
+    print('Group-Id $selected_group_id has been selected on start dialog');
 
-        AlertDialog addDialog = AlertDialog(
-          title: Text('Add entity'),
-          backgroundColor: Colors.blueGrey[200],
-          content:
-          Container (
-              padding: EdgeInsets.all(20.0),
-              color: Colors.blueGrey[100],
-              height: 200,
-              child: Column(
-                //crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Row(children: <Widget>[
-                    Expanded(
-                        flex: 1,
-                        child: Text('Name')),
-                    Expanded(
-                        flex: 2,
-                        child : nameField
-                    )
-                  ]),
-                  Row(children: <Widget>[
-                    Expanded(
-                        flex: 1,
-                        child: Text('Value')),
-                    Expanded(
-                        flex: 2,
-                        child : valueField
-                    )
-                  ]),
-                  Row(children: [
-                    Expanded(flex: 1, child: Text('To')),
-                    Expanded(flex: 2, child: group_selector)
-                  ]),
-
-                ],
-              )
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                nameField.controller!.clear();
-                valueField.controller!.clear();
-              },
-              child: Text('CANCEL'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (selected_group != null) {
-                  add_entity(selected_group['id'], nameField, valueField);
+    AlertDialog addDialog = AlertDialog(
+      title: Text('Add entity'),
+      backgroundColor: Colors.blueGrey[200],
+      content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            var group_selector = DropdownButton<int>(
+                value: selected_group_id,
+                items: groups.map((group) =>
+                    DropdownMenuItem<int>(child: Text(group['name']),
+                        value: group['id'])).toList(),
+                onChanged: (int? new_value) {
+                  setState(() {
+                    selected_group_id = new_value;
+                    print('Group-Id $selected_group_id has been selected');
+                  });
                 }
-                Navigator.pop(context);
-              },
-              child: Text('ADD'),
-            ),
-          ],
-        );
-        showDialog(context: context, builder: (context) => addDialog);
+            );
+
+            return Container(
+                padding: EdgeInsets.all(20.0),
+                color: Colors.blueGrey[100],
+                height: 200,
+                child: Column(
+                  //crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Row(children: <Widget>[
+                      Expanded(
+                          flex: 1,
+                          child: Text('Name')),
+                      Expanded(
+                          flex: 2,
+                          child: nameField
+                      )
+                    ]),
+                    Row(children: <Widget>[
+                      Expanded(
+                          flex: 1,
+                          child: Text('Value')),
+                      Expanded(
+                          flex: 2,
+                          child: valueField
+                      )
+                    ]),
+                    Row(children: [
+                      Expanded(flex: 1, child: Text('To')),
+                      Expanded(flex: 2, child: group_selector)
+                    ]),
+
+                  ],
+                )
+            );
+          }),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            nameField.controller!.clear();
+            valueField.controller!.clear();
+          },
+          child: Text('CANCEL'),
+        ),
+        TextButton(
+          onPressed: () {
+            print("Selected group-id ${selected_group_id}");
+            if (selected_group_id != null) {
+              add_entity(selected_group_id, nameField, valueField);
+            }
+            Navigator.pop(context);
+          },
+          child: Text('ADD'),
+        ),
+      ],
+    );
+    showDialog(context: context, builder: (context) => addDialog);
   }
 
   void add_entity(int group_id, TextField name, TextField value) {
+    print("add entry $name $value to group #${group_id}");
     setState(() {
-      storage.add_item(group_id, name.controller!.text, double.parse(value.controller!.text));
-      name.controller!.clear();
-      value.controller!.clear();
+      Future<int> f = storage.add_item(group_id, name.controller!.text, double.parse(value.controller!.text));
+      f.then((id) {
+        name.controller!.clear();
+        value.controller!.clear();
+        dad.refresh();
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    var dad = DadList();
     dad.setStorage(storage);
+
     var fab2 = Stack(
       children: <Widget>[
         Padding(padding: EdgeInsets.only(left:31),
