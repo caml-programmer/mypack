@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: "My Pack",
-      home: MyHomePage(title: 'MY PACK')
+      home: const MyHomePage(title: 'MY PACK')
     );
   }
 }
@@ -25,10 +26,17 @@ class MyHomePage extends StatefulWidget {
 
   @override
   State<MyHomePage> createState() => MyHomePageState();
+
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  Storage storage = Storage();
+  final storage = Storage();
+
+  MyHomePageState() {
+    storage.after_connect(() {
+      this.updateGroups();
+    });
+  }
 
   TextField groupField = TextField(controller: TextEditingController());
   TextField nameField = TextField(controller: TextEditingController());
@@ -40,11 +48,10 @@ class MyHomePageState extends State<MyHomePage> {
 
   var dad = DadList();
 
-  MyHomePageState() {
-    storage.create().then((_) {
-      print('Storage conntection created');
-      updateGroups();
-    });
+  @override
+  void initState() {
+    super.initState();
+    dad.setStorage(storage);
   }
 
   void updateGroups() {
@@ -56,14 +63,6 @@ class MyHomePageState extends State<MyHomePage> {
         print('Groups: $groups');
       });
     });
-  }
-
-  List<Map> getGroups() {
-    print('Get groups');
-    if (groups == null) {
-      updateGroups();
-    }
-    return groups;
   }
 
   void showAddGroupDialog(BuildContext context) {
@@ -100,9 +99,9 @@ class MyHomePageState extends State<MyHomePage> {
         ),
         TextButton(
           onPressed: () {
-            setState(() {
-              storage.add_group(groupField.controller!.text.toString());
-            });
+            storage.add_group(groupField.controller!.text.toString());
+            this.updateGroups();
+            //this.dad_refresh();
             groupField.controller!.clear();
             Navigator.pop(context);
           },
@@ -114,7 +113,6 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   void showAddEntityDialog(BuildContext context) {
-    var groups = getGroups();
     selected_group_id = (groups.length > 0) ? groups[0]['id'] : null;
     print('Group-Id $selected_group_id has been selected on start dialog');
 
@@ -196,19 +194,25 @@ class MyHomePageState extends State<MyHomePage> {
 
   void add_entity(int group_id, TextField name, TextField value) {
     print("add entry $name $value to group #${group_id}");
-    setState(() {
-      Future<int> f = storage.add_item(group_id, name.controller!.text, double.parse(value.controller!.text));
-      f.then((id) {
-        name.controller!.clear();
-        value.controller!.clear();
-        dad.refresh();
-      });
+    Future<int> f = storage.add_item(group_id, name.controller!.text, double.parse(value.controller!.text));
+    f.then((id) {
+      dad.getState().add_item(group_id, name.controller!.text, double.parse(value.controller!.text));
+      //this.dad_refresh();
+      name.controller!.clear();
+      value.controller!.clear();
+    });
+  }
+
+  void dad_refresh() {
+    storage.after_connect(() {
+      dad.getState().setContents();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     dad.setStorage(storage);
+    storage.connect(() {}); // start connection
 
     var fab2 = Stack(
       children: <Widget>[

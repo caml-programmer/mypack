@@ -10,26 +10,23 @@ import 'package:mypack/db.dart';
 class DadList extends StatefulWidget {
   DadList({Key? key}) : super(key: key);
 
-  var storage;
-  var state_refresh = (() {});
+  var storage, state;
 
   void setStorage(Storage s) {
     storage = s;
-    s.create().then((_) {});
   }
 
   Storage getStorage() {
     return storage;
   }
 
-  void refresh() {
-    state_refresh();
+  DadListState getState() {
+    return state;
   }
 
   @override
   DadListState createState() {
-    var state = DadListState(storage);
-    state_refresh = (() { state.refresh(); });
+    state = DadListState(storage);
     return state;
   }
 }
@@ -37,64 +34,95 @@ class DadList extends StatefulWidget {
 class DadListState extends State<DadList> {
   var storage;
   var _contents = <DragAndDropList>[];
+  var group_positions = [];
 
-  DadListState(this.storage) {
-      setContents();
-  }
+  DadListState(this.storage);
 
   void setContents() {
         print('SetContents');
-        storage.connect(() {
+        var new_contents = <DragAndDropList>[];
+        var new_group_positions = [];
+        storage.after_connect(() {
+          print('SetContents: conntected');
           storage.groups().then((groups) {
-            _contents.clear();
-            groups.forEach((g) {
-              var group_id = g['id'];
-              var group_name = g['name'];
-              var children = <DragAndDropItem>[];
-              storage.items(group_id).then((items) {
+            setState(() {
+              groups.forEach((g) {
+                var group_id = g['id'];
+                var group_name = g['name'];
+                var children = <DragAndDropItem>[];
+                new_group_positions.add(group_id);
+                print('SetContents: add group $group_name');
+                storage.items(group_id).then((items) {
                   items.forEach((e) {
-                  var item_name = e['name'];
-                  var item_value = e['value'];
-                  var item_active = e['active'];
-                  bool active = (item_active == 1);
-                  children.add(DragAndDropItem(child: Row(
-                      children: [
-                        Checkbox(value: active, onChanged: ((_) {}),),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 12),
-                          child: Text('${item_name} ${item_value}'),
-                        ),
-                      ])));
-                });
-              });
-
-              _contents.add(DragAndDropList(
-                  header: Column(children: <Widget>[
-                    Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(left: 8, bottom: 4),
-                          child: Text('${group_name}',
-                            style: TextStyle(fontWeight: FontWeight.bold,
-                                fontSize: 16),
+                    var item_name = e['name'];
+                    var item_value = e['value'];
+                    var item_active = e['active'];
+                    bool active = (item_active == 1);
+                    print('SetContents: add item $item_name');
+                    children.add(DragAndDropItem(child: Row(
+                        children: [
+                          Checkbox(value: active, onChanged: ((_) {}),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            child: Text('${item_name} ${item_value}'),
                           ),
-                        ),
-                      ],
-                    ),
-                  ]),
-                  children: children
-              ));
+                        ])));
+                  });
+                });
+
+                new_contents.add(DragAndDropList(
+                    header: Column(children: <Widget>[
+                      Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 8, bottom: 4),
+                            child: Text('${group_name}',
+                              style: TextStyle(fontWeight: FontWeight.bold,
+                                  fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ]),
+                    children: children
+                ));
+              });
+              print('SetContents: set new content');
+              _contents = new_contents;
+              group_positions = new_group_positions;
             });
           });
-
         });
   }
 
-  void refresh() {
+  void add_item(int group_id, String name, double value) {
+    bool active = false;
+    var item = DragAndDropItem(child: Row(
+        children: [
+          Checkbox(value: active, onChanged: ((_) {}),),
+          Padding(
+            padding: EdgeInsets.symmetric(
+                vertical: 8, horizontal: 12),
+            child: Text('${name} ${value}'),
+          ),
+        ]));
+
+    // search of group position
+    var group_pos = 0;
+    for(var i=0; i<group_positions.length; i++) {
+      if (group_positions[i] == group_id) {
+        group_pos = i;
+      }
+    }
+    var count = _contents[group_pos].children.length;
     setState(() {
-      this.setContents();
+      _contents[group_pos].children.insert(count, item);
     });
+  }
+
+  void refresh() {
+    setState(() {});
   }
 
   @override

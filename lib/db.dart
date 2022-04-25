@@ -1,17 +1,43 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
 class Storage {
   Database? db;
 
+  bool connected() {
+    return (db != null);
+  }
+
   connect(void call()) {
-    create().then((_) {
-      print('Call after connect');
+    if (this.connected()) {
       call();
-    });
+    }
+    else {
+      create().then((_) {
+        call();
+      });
+    }
+  }
+
+  void after_connect(void call()) {
+    if (this.connected()) {
+      call();
+    }
+    else {
+      Timer.periodic(Duration(seconds: 1), (timer) {
+        if (this.connected()) {
+          call();
+          timer.cancel();
+        }
+      });
+    }
   }
 
   Future create() async {
     if (db == null) {
+      print('open database');
       Database database = await openDatabase(
         "mypack.db",
         version: 1,
@@ -22,6 +48,7 @@ class Storage {
               'CREATE TABLE pack(id INTEGER PRIMARY KEY, group_id INTEGER REFERENCES groups(id), name TEXT, value REAL, position INTEGER, active INTEGER)');
         },
       );
+      print('set database');
       this.db = database;
     }
   }
