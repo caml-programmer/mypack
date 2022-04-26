@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -41,6 +40,60 @@ class DadListState extends State<DadList> {
 
   DadListState(this.storage);
 
+  Widget make_dad_value(int item_id, String item_name, double item_value) {
+    return Container(
+      width: 300,
+      child:
+      Dismissible(key: Key(item_id.toString()),
+          background: Container(color: Colors.red),
+          direction: DismissDirection.horizontal,
+          onDismissed: ((direction) {
+            storage.remove_item(item_id).then((_) {
+              //_contents[new_group_positions.length - 1].children.removeAt(item_position);
+              this.setContents();
+            });
+          }),
+          child: Text('${item_name} ${item_value}')),
+    );
+  }
+
+  Widget make_checkbox(int item_id) {
+    return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+      return Checkbox(value: active_map[item_id],
+          onChanged: ((value) {
+            // print('Checkbox #${item_id} (${active_map[item_id]}) changed to $value');
+            setState(() {
+              active_map[item_id] = value;
+              storage.update_active(item_id, value, (() {
+                // print('Update total');
+                storage.set_total(storage.get_master().update_total);
+              }));
+            });
+          }));
+    });
+  }
+
+  Widget make_header(int group_id, String group_name) {
+    return Container(width: 300,
+                     child: Dismissible(key: Key(group_id.toString()),
+                                  background: Container(color: Colors.red),
+                                  direction: DismissDirection.horizontal,
+                                  onDismissed: ((direction) {
+                                    storage.remove_group(group_id).then((_) {
+                                      this.setContents();
+                                    });
+                                  }),
+                                  child: Column(children: <Widget>[
+                                                Row(children: [
+                                                    Padding(padding: EdgeInsets.only(left: 8, bottom: 4),
+                                                            child:
+                                                              Text('${group_name}',
+                                                                style: TextStyle(fontWeight: FontWeight.bold,
+                                                                fontSize: 16))),
+                                                    ]),
+                                                ])));
+  }
+
   void setContents() {
         print('SetContents');
         var new_contents = <DragAndDropList>[];
@@ -61,47 +114,23 @@ class DadListState extends State<DadList> {
                     var item_name = e['name'];
                     var item_value = e['value'];
                     var item_active = e['active'];
+                    var item_position = e['position'];
                     bool active = (item_active == 1);
                     active_map[item_id] = active;
                     print('SetContents: add item $item_name');
                     children.add(DragAndDropItem(child: Row(
                         children: [
-                          StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-                            return Checkbox(value: active_map[item_id],
-                                onChanged: ((value) {
-                                  // print('Checkbox #${item_id} (${active_map[item_id]}) changed to $value');
-                                  setState(() {
-                                    active_map[item_id] = value;
-                                    storage.update_active(item_id, value, (() {
-                                      // print('Update total');
-                                      storage.set_total(storage.get_master().update_total);
-                                    }));
-                                  });
-                                }));
-                          }),
+                          this.make_checkbox(item_id),
                           Padding(
                             padding: EdgeInsets.symmetric(
                                 vertical: 8, horizontal: 12),
-                            child: Text('${item_name} ${item_value}'),
+                            child: this.make_dad_value(item_id, item_name, item_value)
                           ),
                         ])));
                   });
                 });
-
                 new_contents.add(DragAndDropList(
-                    header: Column(children: <Widget>[
-                      Row(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(left: 8, bottom: 4),
-                            child: Text('${group_name}',
-                              style: TextStyle(fontWeight: FontWeight.bold,
-                                  fontSize: 16),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ]),
+                    header: make_header(group_id, group_name),
                     children: children
                 ));
               });
@@ -117,21 +146,11 @@ class DadListState extends State<DadList> {
     active_map[id] = false;
     var item = DragAndDropItem(child: Row(
         children: [
-          StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-              return Checkbox(value: active_map[id],
-                          onChanged: ((value) {
-                            setState(() {
-                                active_map[id] = value;
-                                storage.update_active(id, value, (() {
-                                  storage.set_total(storage.get_master().update_total);
-                                }));
-                            });
-                          }));
-          }),
+          this.make_checkbox(id),
           Padding(
             padding: EdgeInsets.symmetric(
                 vertical: 8, horizontal: 12),
-            child: Text('${name} ${value}'),
+            child: this.make_dad_value(id, name, value),
           ),
         ]));
 

@@ -257,7 +257,7 @@ class MyHomePageState extends State<MyHomePage> {
       ),
       body: dad,
       bottomNavigationBar: Center(
-          child: Text('Total: ${total_value} kg',
+          child: Text('Total: ${total_value.toStringAsPrecision(3)} kg',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)
           ),
           heightFactor: 3,

@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:flutter/material.dart';
 import 'package:mypack/main.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -83,6 +81,10 @@ class Storage {
     return Sqflite.firstIntValue(await db!.rawQuery('select id from groups where name = ?', [group]))!;
   }
 
+  Future<int> group_position(int group_id) async {
+    return Sqflite.firstIntValue(await db!.rawQuery('select position from groups where id = ?', [group_id]))!;
+  }
+
   Future add_group(String group, void call()) async {
     int position = await group_count();
     await db!.transaction((txn) async {
@@ -94,7 +96,13 @@ class Storage {
   }
 
   Future remove_group(int group_id) async {
-    await db!.rawQuery('DELETE FROM groups where id = ?', [group_id]);
+    int cur_pos = await group_position(group_id);
+    int max_pos = await group_count();
+    await db!.transaction((txn) async {
+      await move_groups_up(txn, max_pos, cur_pos);
+      await txn.rawQuery('DELETE FROM groups where id = ?', [group_id]);
+      await txn.rawQuery('DELETE FROM pack where group_id = ?', [group_id]);
+    });
   }
 
   Future max_group_position(int group_id) async {
@@ -142,7 +150,13 @@ class Storage {
   }
 
   Future remove_item(int item_id) async {
-    await db!.rawQuery('DELETE FROM pack where id = ?', [item_id]);
+    int group_id = Sqflite.firstIntValue(await db!.rawQuery('select group_id from pack where id=?', [item_id]))!;
+    int cur_pos = Sqflite.firstIntValue(await db!.rawQuery('select position from pack where id=?',[item_id]))!;
+    int max_pos = await max_group_position(group_id);
+    await db!.transaction((txn) async {
+        await move_up_positions(txn, group_id, max_pos, cur_pos);
+        await txn.rawQuery('DELETE FROM pack where id = ?', [item_id]);
+    });
   }
 
   Future move_down_positions(Transaction txn, int group_id, int min_pos, int cur_pos) async {
