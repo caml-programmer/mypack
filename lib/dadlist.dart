@@ -1,3 +1,5 @@
+import 'dart:collection';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -35,6 +37,7 @@ class DadListState extends State<DadList> {
   var storage;
   var _contents = <DragAndDropList>[];
   var group_positions = [];
+  var active_map = HashMap();
 
   DadListState(this.storage);
 
@@ -54,14 +57,28 @@ class DadListState extends State<DadList> {
                 print('SetContents: add group $group_name');
                 storage.items(group_id).then((items) {
                   items.forEach((e) {
+                    var item_id = e['id'];
                     var item_name = e['name'];
                     var item_value = e['value'];
                     var item_active = e['active'];
                     bool active = (item_active == 1);
+                    active_map[item_id] = active;
                     print('SetContents: add item $item_name');
                     children.add(DragAndDropItem(child: Row(
                         children: [
-                          Checkbox(value: active, onChanged: ((_) {}),),
+                          StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+                            return Checkbox(value: active_map[item_id],
+                                onChanged: ((value) {
+                                  print('Checkbox #${item_id} (${active_map[item_id]}) changed to $value');
+                                  setState(() {
+                                    active_map[item_id] = value;
+                                    storage.update_active(item_id, value, (() {
+                                      print('Update total');
+                                      storage.set_total(storage.get_master().update_total);
+                                    }));
+                                  });
+                                }));
+                          }),
                           Padding(
                             padding: EdgeInsets.symmetric(
                                 vertical: 8, horizontal: 12),

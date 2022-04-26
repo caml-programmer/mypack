@@ -35,6 +35,7 @@ class MyHomePageState extends State<MyHomePage> {
   var total_value = 0.0;
 
   MyHomePageState() {
+    storage.set_master(this);
     storage.after_connect(() {
       this.updateGroups();
       storage.set_total(this.update_total);

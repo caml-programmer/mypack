@@ -1,10 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:mypack/main.dart';
 import 'package:sqflite/sqflite.dart';
 
 class Storage {
   Database? db;
+
+  var master = null;
+
+  void set_master(MyHomePageState new_master) {
+    master = new_master;
+  }
+  MyHomePageState get_master() {
+    return master;
+  }
 
   bool connected() {
     return (db != null);
@@ -90,8 +100,19 @@ class Storage {
 
   Future set_total(void call(double total)) async {
     List<Map<String,Object?>> records = await db!.rawQuery('select sum(value) as sum from pack where active = ?', [1]);
-    double total = records.first['sum'] as double;
-    call(total);
+    double? total = records.first['sum'] as double?;
+    print('total is ${total}');
+    if (total == null) {
+      call(0.0);
+    }
+    else {
+      call(total);
+    }
+  }
+
+  Future update_active(int id, bool value, void call()) async {
+    await db!.rawQuery('update pack set active = ? where id = ?', [value ? 1 : 0, id]);
+    call();
   }
 
   Future<int> add_item(int group_id, String item, double value) async {
