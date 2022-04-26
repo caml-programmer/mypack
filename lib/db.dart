@@ -88,6 +88,12 @@ class Storage {
     }
   }
 
+  Future set_total(void call(double total)) async {
+    List<Map<String,Object?>> records = await db!.rawQuery('select sum(value) as sum from pack where active = ?', [1]);
+    double total = records.first['sum'] as double;
+    call(total);
+  }
+
   Future<int> add_item(int group_id, String item, double value) async {
     print("try to add item: $group_id $item $value");
     int position = await max_group_position(group_id);

@@ -32,9 +32,12 @@ class MyHomePage extends StatefulWidget {
 class MyHomePageState extends State<MyHomePage> {
   final storage = Storage();
 
+  var total_value = 0.0;
+
   MyHomePageState() {
     storage.after_connect(() {
       this.updateGroups();
+      storage.set_total(this.update_total);
     });
   }
 
@@ -67,7 +70,7 @@ class MyHomePageState extends State<MyHomePage> {
 
   void showAddGroupDialog(BuildContext context) {
     AlertDialog addDialog = AlertDialog(
-      title: Text('Add group'),
+      title: Text('ADD GROUP'),
       backgroundColor: Colors.blueGrey[200],
       content:
       Container (
@@ -117,7 +120,7 @@ class MyHomePageState extends State<MyHomePage> {
     print('Group-Id $selected_group_id has been selected on start dialog');
 
     AlertDialog addDialog = AlertDialog(
-      title: Text('Add entity'),
+      title: Text('ADD ITEM'),
       backgroundColor: Colors.blueGrey[200],
       content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -203,6 +206,12 @@ class MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void update_total(double new_value) {
+    setState(() {
+      total_value = new_value;
+    });
+  }
+
   void dad_refresh() {
     storage.after_connect(() {
       dad.getState().setContents();
@@ -229,7 +238,7 @@ class MyHomePageState extends State<MyHomePage> {
           alignment: Alignment.bottomRight,
           child: FloatingActionButton(
             onPressed: () { showAddEntityDialog(context); },
-            tooltip: 'Add entity',
+            tooltip: 'Add item',
             child: Icon(Icons.add),),
         ),
       ],
@@ -240,6 +249,13 @@ class MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: dad,
+      bottomNavigationBar: Center(
+          child: Text('Total: ${total_value} kg',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)
+          ),
+          heightFactor: 3,
+          widthFactor: 100,
+      ),
       floatingActionButton: fab2
     );
   }
