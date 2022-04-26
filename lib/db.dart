@@ -208,12 +208,35 @@ class Storage {
     }
   }
 
+  Future move_groups_down(Transaction txn, int min_pos, int cur_pos) async {
+    if (cur_pos >= min_pos) {
+      await txn.rawQuery('UPDATE groups SET position=? where position = ?',
+          [cur_pos + 1, cur_pos]);
+      await move_groups_down(txn, min_pos, cur_pos - 1);
+    }
+  }
+
+  Future move_groups_up(Transaction txn, int max_pos, int cur_pos) async {
+    if (cur_pos <= max_pos) {
+      await txn.rawQuery('UPDATE groups SET position=? where position = ?',
+          [cur_pos - 1, cur_pos]);
+      await move_groups_up(txn, max_pos, cur_pos + 1);
+    }
+  }
+
   Future onListReorder(int oldListIndex, int newListIndex) async {
     int old_group_id = Sqflite.firstIntValue(await db!.rawQuery('select id from groups where position = ?', [oldListIndex]))!;
-    int new_group_id = Sqflite.firstIntValue(await db!.rawQuery('select id from groups where position = ?', [newListIndex]))!;
     await db!.transaction((txn) async {
-      await txn.rawQuery('UPDATE groups SET position = ? where id = ?', [oldListIndex, new_group_id]);
-      await txn.rawQuery('UPDATE groups SET position = ? where id = ?', [newListIndex, old_group_id]);
+      if (oldListIndex > newListIndex) {
+        // element move up
+        await move_groups_down(txn, newListIndex, oldListIndex);
+        await txn.rawQuery('UPDATE groups SET position = ? where id = ?', [newListIndex, old_group_id]);
+      }
+      if (newListIndex > oldListIndex) {
+        // element move down
+        await move_groups_up(txn, newListIndex, oldListIndex);
+        await txn.rawQuery('UPDATE groups SET position = ? where id = ?', [newListIndex, old_group_id]);
+      }
     });
   }
 
