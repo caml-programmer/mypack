@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: "My Pack",
-      home: const MyHomePage(title: 'MY PACK')
+      home: const MyHomePage(title: 'My Pack')
     );
   }
 }
@@ -103,9 +103,11 @@ class MyHomePageState extends State<MyHomePage> {
         ),
         TextButton(
           onPressed: () {
-            storage.add_group(groupField.controller!.text.toString());
-            this.updateGroups();
-            //this.dad_refresh();
+            storage.add_group(groupField.controller!.text.toString(), () {
+              this.updateGroups();
+              this.dad_refresh();
+            });
+            //groups.add(groupField.controller!.text.toString());
             groupField.controller!.clear();
             Navigator.pop(context);
           },
@@ -197,10 +199,11 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   void add_entity(int group_id, TextField name, TextField value) {
-    print("add entry $name $value to group #${group_id}");
-    Future<int> f = storage.add_item(group_id, name.controller!.text, double.parse(value.controller!.text));
+    // print("add item $name ($value) to group #${group_id}");
+    var val = double.parse(value.controller!.text);
+    Future<int> f = storage.add_item(group_id, name.controller!.text, val);
     f.then((id) {
-      dad.getState().add_item(group_id, name.controller!.text, double.parse(value.controller!.text));
+      dad.getState().add_item(group_id, name.controller!.text, val);
       //this.dad_refresh();
       name.controller!.clear();
       value.controller!.clear();
@@ -223,6 +226,9 @@ class MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     dad.setStorage(storage);
     storage.connect(() {}); // start connection
+    //Future.delayed(Duration(seconds: 10), () {
+    //  this.dad_refresh();
+    //});
 
     var fab2 = Stack(
       children: <Widget>[

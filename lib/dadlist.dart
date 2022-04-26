@@ -69,11 +69,11 @@ class DadListState extends State<DadList> {
                           StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
                             return Checkbox(value: active_map[item_id],
                                 onChanged: ((value) {
-                                  print('Checkbox #${item_id} (${active_map[item_id]}) changed to $value');
+                                  // print('Checkbox #${item_id} (${active_map[item_id]}) changed to $value');
                                   setState(() {
                                     active_map[item_id] = value;
                                     storage.update_active(item_id, value, (() {
-                                      print('Update total');
+                                      // print('Update total');
                                       storage.set_total(storage.get_master().update_total);
                                     }));
                                   });
@@ -136,10 +136,6 @@ class DadListState extends State<DadList> {
     setState(() {
       _contents[group_pos].children.insert(count, item);
     });
-  }
-
-  void refresh() {
-    setState(() {});
   }
 
   @override
