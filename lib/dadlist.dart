@@ -113,11 +113,21 @@ class DadListState extends State<DadList> {
         });
   }
 
-  void add_item(int group_id, String name, double value) {
-    bool active = false;
+  void add_item(int group_id, int id, String name, double value) {
+    active_map[id] = false;
     var item = DragAndDropItem(child: Row(
         children: [
-          Checkbox(value: active, onChanged: ((_) {}),),
+          StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+              return Checkbox(value: active_map[id],
+                          onChanged: ((value) {
+                            setState(() {
+                                active_map[id] = value;
+                                storage.update_active(id, value, (() {
+                                  storage.set_total(storage.get_master().update_total);
+                                }));
+                            });
+                          }));
+          }),
           Padding(
             padding: EdgeInsets.symmetric(
                 vertical: 8, horizontal: 12),

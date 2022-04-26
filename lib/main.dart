@@ -203,7 +203,7 @@ class MyHomePageState extends State<MyHomePage> {
     var val = double.parse(value.controller!.text);
     Future<int> f = storage.add_item(group_id, name.controller!.text, val);
     f.then((id) {
-      dad.getState().add_item(group_id, name.controller!.text, val);
+      dad.getState().add_item(group_id, id, name.controller!.text, val);
       //this.dad_refresh();
       name.controller!.clear();
       value.controller!.clear();
