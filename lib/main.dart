@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mypack/db.dart';
 import 'package:mypack/dadlist.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -222,6 +224,12 @@ class MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<String> dump_path() async {
+    Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
+    String appDocumentsPath = appDocumentsDirectory.path;
+    return '$appDocumentsPath/mypack.json';
+  }
+
   @override
   Widget build(BuildContext context) {
     dad.setStorage(storage);
@@ -229,6 +237,17 @@ class MyHomePageState extends State<MyHomePage> {
     //Future.delayed(Duration(seconds: 10), () {
     //  this.dad_refresh();
     //});
+
+    Timer.periodic(Duration(seconds: 30), (timer) {
+      if (storage.connected()) {
+        storage.export().then((dump) {
+          this.dump_path().then((path) {
+            var dump_file = File(path);
+            dump_file.writeAsString(dump);
+          });
+        });
+      }
+    });
 
     var fab2 = Stack(
       children: <Widget>[

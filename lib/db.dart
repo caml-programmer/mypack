@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:mypack/main.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -252,6 +253,23 @@ class Storage {
         await txn.rawQuery('UPDATE groups SET position = ? where id = ?', [newListIndex, old_group_id]);
       }
     });
+  }
+
+  Future<String> export() async {
+      Map<String, dynamic> map = Map();
+      List<Map> groups = await this.groups();
+      groups.forEach((g) async {
+        List<Map> items = await this.items(g['id']);
+        List<dynamic> value = items.map((i) {
+            var m = Map();
+            m['name'] = i['name'];
+            m['value'] = i['value'];
+            m['active'] = i['active'];
+            return m;
+        }).toList();
+        map[g['name']] = value;
+      });
+      return jsonEncode(map);
   }
 
 }
