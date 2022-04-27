@@ -256,6 +256,7 @@ class Storage {
   }
 
   Future<String> export() async {
+      var encoder = JsonEncoder.withIndent(' ' * 4);
       Map<String, dynamic> map = Map();
       List<Map> groups = await this.groups();
       var futures = groups.map((g) async {
@@ -270,7 +271,7 @@ class Storage {
         map[g['name']] = value;
       });
       await Future.wait(futures);
-      return jsonEncode(map);
+      return encoder.convert(map);
   }
 
 }
