@@ -225,8 +225,8 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   Future<String> dump_path() async {
-    Directory sup_dir = await getApplicationSupportDirectory();
-    Directory? ext_dir = await getExternalStorageDirectory();
+    Directory sup_dir = await getApplicationSupportDirectory(); // access over application only
+    Directory? ext_dir = await getExternalStorageDirectory();   // user access over USB-connection to computer
     // print('ext-dir: ${ext_dir}');
     if (ext_dir == null) {
       return '${sup_dir.path}/mypack.json';

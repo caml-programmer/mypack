@@ -258,8 +258,8 @@ class Storage {
   Future<String> export() async {
       Map<String, dynamic> map = Map();
       List<Map> groups = await this.groups();
-      groups.forEach((g) async {
-        List<Map> items = await this.items(g['id']);
+      var futures = groups.map((g) async {
+        var items = await this.items(g['id']);
         List<dynamic> value = items.map((i) {
             var m = Map();
             m['name'] = i['name'];
@@ -269,6 +269,7 @@ class Storage {
         }).toList();
         map[g['name']] = value;
       });
+      Future.wait(futures);
       return jsonEncode(map);
   }
 
