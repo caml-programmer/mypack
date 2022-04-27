@@ -95,11 +95,11 @@ class DadListState extends State<DadList> {
   }
 
   void setContents() {
-        print('SetContents');
+        //print('SetContents');
         var new_contents = <DragAndDropList>[];
         var new_group_positions = [];
         storage.after_connect(() {
-          print('SetContents: conntected');
+          //print('SetContents: conntected');
           storage.groups().then((groups) {
             setState(() {
               groups.forEach((g) {
@@ -107,7 +107,7 @@ class DadListState extends State<DadList> {
                 var group_name = g['name'];
                 var children = <DragAndDropItem>[];
                 new_group_positions.add(group_id);
-                print('SetContents: add group $group_name');
+                //print('SetContents: add group $group_name');
                 storage.items(group_id).then((items) {
                   items.forEach((e) {
                     var item_id = e['id'];
@@ -117,7 +117,7 @@ class DadListState extends State<DadList> {
                     var item_position = e['position'];
                     bool active = (item_active == 1);
                     active_map[item_id] = active;
-                    print('SetContents: add item $item_name');
+                    //print('SetContents: add item $item_name');
                     children.add(DragAndDropItem(child: Row(
                         children: [
                           this.make_checkbox(item_id),
@@ -134,7 +134,7 @@ class DadListState extends State<DadList> {
                     children: children
                 ));
               });
-              print('SetContents: set new content');
+              //print('SetContents: set new content');
               _contents = new_contents;
               group_positions = new_group_positions;
             });
@@ -169,7 +169,7 @@ class DadListState extends State<DadList> {
 
   @override
   void initState() {
-    print('initState');
+    //print('initState');
     super.initState();
     this.setContents();
   }

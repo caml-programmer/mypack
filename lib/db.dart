@@ -46,7 +46,7 @@ class Storage {
 
   Future create() async {
     if (db == null) {
-      print('open database');
+      // print('open database');
       Database database = await openDatabase(
         "mypack.db",
         version: 1,
@@ -58,7 +58,7 @@ class Storage {
         },
       );
 
-      print('set database');
+      // print('set database');
       this.db = database;
 
       // await db!.execute('DELETE FROM groups');
@@ -91,7 +91,7 @@ class Storage {
     await db!.transaction((txn) async {
       int id = await txn.rawInsert(
           'INSERT INTO groups(name,position) VALUES(?,?)', [group, position]);
-      print('inserted: $id');
+      // print('inserted: $id');
       call();
     });
   }
@@ -134,14 +134,14 @@ class Storage {
   }
 
   Future<int> add_item(int group_id, String item, double value) async {
-    print("try to add item: $group_id $item $value");
+    // print("try to add item: $group_id $item $value");
     int position = await max_group_position(group_id);
     position++;
     return await db!.transaction((txn) async {
       int id = await txn.rawInsert(
           'INSERT INTO pack(group_id, name, value, position, active) VALUES(?,?,?,?,?)',
           [group_id, item, value, position, 0]);
-      print('inserted: $id');
+      // print('inserted: $id');
       return id;
     });
   }
@@ -177,21 +177,21 @@ class Storage {
   }
 
   Future onItemReorder(int oldItemIndex, int oldListIndex, int newItemIndex, int newListIndex) async {
-    print("storage.onItemReorder($oldItemIndex, $oldListIndex, $newItemIndex, $newListIndex)");
+    // print("storage.onItemReorder($oldItemIndex, $oldListIndex, $newItemIndex, $newListIndex)");
     int old_group_id = Sqflite.firstIntValue(await db!.rawQuery('select id from groups where position = ?', [oldListIndex]))!;
     int new_group_id = Sqflite.firstIntValue(await db!.rawQuery('select id from groups where position = ?', [newListIndex]))!;
     int? old_item_id  = Sqflite.firstIntValue(await db!.rawQuery('select id from pack where position = ? and group_id = ?', [oldItemIndex, old_group_id]));
     int? new_item_id  = Sqflite.firstIntValue(await db!.rawQuery('select id from pack where position = ? and group_id = ?', [newItemIndex, new_group_id]));
-    print("$old_group_id.$old_item_id -> $new_group_id.$new_item_id");
+    // print("$old_group_id.$old_item_id -> $new_group_id.$new_item_id");
 
     if (oldListIndex != newListIndex) {
       int new_max_position = await max_group_position(new_group_id);
       int old_max_position = await max_group_position(old_group_id);
 
       await db!.transaction((txn) async {
-        print("move down positions ${newItemIndex} to ${new_max_position} for group ${new_group_id}");
+        // print("move down positions ${newItemIndex} to ${new_max_position} for group ${new_group_id}");
         await move_down_positions(txn, new_group_id, newItemIndex, new_max_position);
-        print("move up positions ${old_max_position} to ${oldItemIndex} for group ${old_group_id}");
+        // print("move up positions ${old_max_position} to ${oldItemIndex} for group ${old_group_id}");
         await move_up_positions(txn, old_group_id, old_max_position, oldItemIndex);
         if (old_item_id != null) {
           await txn.rawQuery(
@@ -203,18 +203,18 @@ class Storage {
     else {
       await db!.transaction((txn) async {
         if (old_item_id != null && new_item_id != null) {
-          print('swap #$old_item_id[$oldItemIndex] -> #$new_item_id[$newItemIndex]');
+          // print('swap #$old_item_id[$oldItemIndex] -> #$new_item_id[$newItemIndex]');
           if (oldItemIndex > newItemIndex) {
-            print("move down positions ${newItemIndex} to ${oldItemIndex}");
+            // print("move down positions ${newItemIndex} to ${oldItemIndex}");
             await move_down_positions(txn, new_group_id, newItemIndex, oldItemIndex);
-            print("set position $newItemIndex for id = $old_item_id");
+            // print("set position $newItemIndex for id = $old_item_id");
             await txn.rawQuery('UPDATE pack SET position=? where id=?',
                 [newItemIndex, old_item_id]);
           }
           if (newItemIndex > oldItemIndex) {
-            print("move up positions ${newItemIndex} to ${oldItemIndex}");
+            // print("move up positions ${newItemIndex} to ${oldItemIndex}");
             await move_up_positions(txn, new_group_id, newItemIndex, oldItemIndex);
-            print("set position $newItemIndex for id = $old_item_id");
+            // print("set position $newItemIndex for id = $old_item_id");
             await txn.rawQuery('UPDATE pack SET position=? where id=?',
                 [newItemIndex, old_item_id]);
           }

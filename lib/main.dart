@@ -62,11 +62,11 @@ class MyHomePageState extends State<MyHomePage> {
 
   void updateGroups() {
     storage.group_count().then((group_count) {
-      print('Group count is $group_count');
+      // print('Group count is $group_count');
       storage.groups().then((groups) {
         this.group_count = group_count;
         this.groups = groups;
-        print('Groups: $groups');
+        // print('Groups: $groups');
       });
     });
   }
@@ -122,7 +122,7 @@ class MyHomePageState extends State<MyHomePage> {
 
   void showAddEntityDialog(BuildContext context) {
     selected_group_id = (groups.length > 0) ? groups[0]['id'] : null;
-    print('Group-Id $selected_group_id has been selected on start dialog');
+    // print('Group-Id $selected_group_id has been selected on start dialog');
 
     AlertDialog addDialog = AlertDialog(
       title: Text('ADD ITEM'),
@@ -137,7 +137,7 @@ class MyHomePageState extends State<MyHomePage> {
                 onChanged: (int? new_value) {
                   setState(() {
                     selected_group_id = new_value;
-                    print('Group-Id $selected_group_id has been selected');
+                    // print('Group-Id $selected_group_id has been selected');
                   });
                 }
             );
@@ -187,7 +187,7 @@ class MyHomePageState extends State<MyHomePage> {
         ),
         TextButton(
           onPressed: () {
-            print("Selected group-id ${selected_group_id}");
+            // print("Selected group-id ${selected_group_id}");
             if (selected_group_id != null) {
               add_entity(selected_group_id, nameField, valueField);
             }
