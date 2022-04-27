@@ -269,7 +269,7 @@ class Storage {
         }).toList();
         map[g['name']] = value;
       });
-      Future.wait(futures);
+      await Future.wait(futures);
       return jsonEncode(map);
   }
 

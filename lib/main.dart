@@ -58,6 +58,25 @@ class MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     dad.setStorage(storage);
+    storage.connect(() {}); // start connection
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      if (storage.connected()) {
+        storage.export().then((dump) {
+          this.dump_path().then((path) {
+            var dump_file = File(path);
+            dump_file.create(recursive: true);
+            var writer = dump_file.openWrite();
+            writer.write(dump);
+            writer.close();
+            writer.done.then(((_) {
+              var snackBar = SnackBar(content: Text('Writing a backup to ${path}'));
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            }));
+            timer.cancel();
+          });
+        });
+      }
+    });
   }
 
   void updateGroups() {
@@ -239,29 +258,6 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     dad.setStorage(storage);
-    storage.connect(() {}); // start connection
-    //Future.delayed(Duration(seconds: 10), () {
-    //  this.dad_refresh();
-    //});
-
-    Timer.periodic(Duration(seconds: 5), (timer) {
-      if (storage.connected()) {
-        storage.export().then((dump) {
-          this.dump_path().then((path) {
-            var dump_file = File(path);
-            dump_file.create(recursive: true);
-            var writer = dump_file.openWrite();
-            writer.write(dump);
-            writer.close();
-            writer.done.then(((_) {
-              var snackBar = SnackBar(content: Text('Writing a backup to ${path}'));
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-            }));
-            timer.cancel();
-          });
-        });
-      }
-    });
 
     var fab2 = Stack(
       children: <Widget>[
