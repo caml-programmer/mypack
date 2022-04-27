@@ -238,12 +238,20 @@ class MyHomePageState extends State<MyHomePage> {
     //  this.dad_refresh();
     //});
 
-    Timer.periodic(Duration(seconds: 30), (timer) {
+    Timer.periodic(Duration(seconds: 5), (timer) {
       if (storage.connected()) {
         storage.export().then((dump) {
           this.dump_path().then((path) {
             var dump_file = File(path);
-            dump_file.writeAsString(dump);
+            dump_file.create(recursive: true);
+            var writer = dump_file.openWrite();
+            writer.write(dump);
+            writer.close();
+            writer.done.then(((_) {
+              var snackBar = SnackBar(content: Text('Writing a backup to ${path}'));
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            }));
+            timer.cancel();
           });
         });
       }
