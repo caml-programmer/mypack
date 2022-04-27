@@ -225,9 +225,15 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   Future<String> dump_path() async {
-    Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
-    String appDocumentsPath = appDocumentsDirectory.path;
-    return '$appDocumentsPath/mypack.json';
+    Directory sup_dir = await getApplicationSupportDirectory();
+    Directory? ext_dir = await getExternalStorageDirectory();
+    // print('ext-dir: ${ext_dir}');
+    if (ext_dir == null) {
+      return '${sup_dir.path}/mypack.json';
+    }
+    else {
+      return '${ext_dir.path}/mypack.json';
+    }
   }
 
   @override
